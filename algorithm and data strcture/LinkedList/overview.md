@@ -484,7 +484,10 @@ public class MyLinkedList {
 
 ## Leetcode Questions
 
-### 206. Reverse Linked List
+When it comes to Leetcode's Linked List questions, they usually involves two pointers and a dummy node. There are some other common tricks, such as traversing the list to get its size.
+But most importantly, many questions can be solved if we keep track of the previous and/or the current node.
+
+### Q01: Reverse Linked List - Leetcode 206
 [https://leetcode.com/problems/reverse-linked-list](https://leetcode.com/problems/reverse-linked-list/description/)
 
 #### Solution 1:
@@ -522,6 +525,249 @@ class Solution {
             curr = next;
         }
         return prev;
+    }
+}
+```
+
+### Q02: Remove Linked List Elements - Leetcode 203
+https://leetcode.com/problems/remove-linked-list-elements/description/
+
+```java
+class Solution {
+    public ListNode removeElements(ListNode head, int val) {
+        ListNode dummy = new ListNode(-1, head);
+        ListNode prev = dummy;
+        ListNode curr = head;
+        while(curr != null) {
+            if(curr.val == val) {
+                prev.next = curr.next;
+            } else {
+                prev = prev.next;
+            }
+            curr = curr.next;
+        }
+
+        return dummy.next;
+    }
+}
+```
+
+### Q03: Remove Nth Node From End of List - Leetcode 19
+In many linked list problems, we have to know the size of the list. The key idea here is to first traverse the list to calculate its size. Once we know the size, we can identify the node just before the one we need to remove. By updating this node's pointer, we can effectively remove the target node.
+```java
+class Solution {
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        int size = 0;
+        ListNode dummy = new ListNode(-1, head);
+        ListNode tail = head;
+        while(tail != null) {
+            tail = tail.next;
+            size++;
+        }
+
+        ListNode prev = dummy;
+        for(int i = 0; i < size - n; i++) {
+            prev = prev.next;
+        }
+        prev.next = prev.next.next;
+        return dummy.next;
+    }
+}
+```
+
+### Q04: Remove Duplicates from Sorted List - Leetcode 83
+https://leetcode.com/problems/remove-duplicates-from-sorted-list/description/
+
+```java
+class Solution {
+    public ListNode deleteDuplicates(ListNode head) {
+        ListNode dummy = new ListNode(-9999, head);
+        ListNode curr = head;
+        ListNode prev = dummy;
+        while(curr != null) {
+            while(curr != null && prev.val == curr.val) {
+                curr = curr.next;
+            }
+            prev.next = curr;
+            prev = prev.next;
+        }
+        return dummy.next;
+    }
+}
+```
+
+### Q05: Swap Nodes in Pairs - Leetcode 24
+
+```java
+class Solution {
+    public ListNode swapPairs(ListNode head) {
+        if(head == null) return head;
+
+        ListNode dummy = new ListNode(-1, head);
+        ListNode prev = dummy;
+
+        while(prev.next != null && prev.next.next != null) {
+            ListNode start = prev.next;
+            ListNode end = prev.next.next;
+            prev.next = end;
+            start.next = end.next;
+            end.next = start;
+            prev = start;
+        }
+
+        return dummy.next;
+    }
+}
+```
+
+### Q06: Merge Two Sorted Lists - Leetcode 21
+
+```java
+class Solution {
+    public ListNode mergeTwoLists(ListNode list1, ListNode list2) {
+        ListNode dummy = new ListNode(-1, null);
+        ListNode curr = dummy;
+
+        while(list1 != null && list2 != null) {
+            if(list1.val > list2.val) {
+                curr.next = new ListNode(list2.val, null);
+                list2 = list2.next;
+            } else {
+                curr.next = new ListNode(list1.val, null);
+                list1 = list1.next;
+            }
+            curr = curr.next;
+        }
+
+        while(list1 != null) {
+            curr.next = new ListNode(list1.val, null);
+            curr = curr.next;
+            list1 = list1.next;
+        }
+        while(list2 != null) {
+            curr.next = new ListNode(list2.val, null);
+            curr = curr.next;
+            list2 = list2.next;
+        }
+        return dummy.next;
+    }
+}
+```
+
+### Q07: 23. Merge k Sorted Lists - Leetcode 23
+This one can be solved using recursion, but there's a much easier way that is using priorityQueue.
+
+```java
+class Solution {
+    public ListNode mergeKLists(ListNode[] lists) {
+        PriorityQueue<ListNode> heap = new PriorityQueue<>((a,b) -> {
+            return a.val - b.val;
+        });
+        for(ListNode node : lists) {
+            if(node != null) heap.add(node);
+        }
+
+        ListNode dummy = new ListNode(-1, null);
+        ListNode curr = dummy;
+        while(!heap.isEmpty()) {
+            ListNode node = heap.poll();
+            curr.next = node;
+            curr = curr.next;
+            if(node.next!= null) {
+                heap.add(node.next);
+            }
+        }
+        return dummy.next;
+    }
+}
+```
+
+### Q07: Linked List Cycle - Leetcode 141
+```java
+public class Solution {
+    public boolean hasCycle(ListNode head) {
+        ListNode slow = head;
+        ListNode fast = head;
+
+        while(fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+            if(slow == fast) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+```
+
+### Q08: Linked List Cycle 2 - Leetcode 142
+**Similar question: 287. Find the Duplicate Number**
+This is a tricky one, because it involves a sophisticated math equation.
+A more brute force approach is to use a hash table. I opted to use Set here.
+When the set contains one of the nodes we have seen before, we know this is where the cycle starts.
+```java
+public class Solution {
+    public ListNode detectCycle(ListNode head) {
+        Set<ListNode> set = new HashSet<>();
+        ListNode slow = head;
+        ListNode fast = head;
+        while(fast != null && fast.next != null) {
+            if(set.contains(slow)) {
+                return slow;
+            } else {
+                set.add(slow);
+            }
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+        return null;
+    }
+}
+```
+
+However, above solution isn't the most optimal, as we create a Set for this that takes O(N) memory. 
+
+* Let's say "a" is the distance from head to the cycle's entrance, and b is the length of the cycle.
+* From the starting point(head), we can reach the cycle by moving (a + n) times
+When the fast and slow pointers meet, the fast pointer has traveled a + n*b + k steps, where n is the number of complete laps around the cycle and k is the position in the cycle.
+fast moves: a + n laps + k, 
+slow moves a + m laps + k, m is smaller than n 
+fast moves twice as fast as slow, therefore, we can deduct that:
+flow = fast - slow = n laps around the cycle.
+With these analysis, we can get that: if we start from the head, and move a steps, that's where the entrance is.
+```java
+public class Solution {
+    public ListNode detectCycle(ListNode head) {
+        ListNode slow = head;
+        ListNode fast = head;
+        while(fast != null && fast.next != null) {
+            fast = fast.next.next;
+            slow = slow.next;
+            if(fast == slow) {
+                slow = head;
+                while(slow != fast) {
+                    slow = slow.next;
+                    fast = fast.next;
+                }
+                return slow;
+            }
+        }
+
+        return null;
+    }
+}
+```
+
+### Q09: Delete Node in a Linked List - Leetcode 237
+```java
+class Solution {
+    public void deleteNode(ListNode node) {
+        node.val = node.next.val; // assign the next node's value to the given node
+        node.next = node.next.next; // remove the next node
+        // This solution works because given node is not a tail node, 
+        // and we only judge the linked list for its values, not node addresses
     }
 }
 ```
